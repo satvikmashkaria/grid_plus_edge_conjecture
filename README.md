@@ -1,16 +1,17 @@
-# Testing a conjecture for Metric Dimension of Grid + edge
+# Testing a conjecture for Metric Dimension of Grid + Edge
 
 TODO - put conjecture here
 
-To verify this conjecture for a m x n grid when MD is 4, run
+To check that there is no resolving set of size 3 if and only if the MD=4 condition in our conjecture does hold, run
 ```
 python3 four_checker.py m n
 ```
-If Success message is printed at the end, conjecture is verified.
-Similarly, for verifying conjecture when MD is 2, run
+To check that there is a resolving set of size 2 if and only if the MD=2 condition in our conjecture does hold, run
 ```
 python3 two_checker.py m n
 ```
+Success message at the end of the output of the script indicates that the conjecture is verified.
+Note that since we proved that the MD of the grid+edge is between 2 and 4, running both of these programs checks the entire statement of the conjecture.
 
 Since we are doing an exhaustive brute-force search, running these files may take long time. For example, checking for 
 9 x 9 grid when MD is 4 takes around 250 secs. To reduce this time, we have made an assumption that for every grid + edge, there 
