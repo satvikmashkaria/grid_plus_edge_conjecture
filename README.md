@@ -2,11 +2,11 @@
 
 TODO - put conjecture here
 
-To check that there is no resolving set of size 3 if and only if the MD=4 condition in our conjecture does hold, run
+For a mxn grid augmented with one edge, to check that there is no resolving set of size 3 if and only if the MD=4 condition in our conjecture hold, run
 ```
 python3 four_checker.py m n
 ```
-To check that there is a resolving set of size 2 if and only if the MD=2 condition in our conjecture does hold, run
+To check that there is a resolving set of size 2 if and only if the MD=2 condition in our conjecture hold, run
 ```
 python3 two_checker.py m n
 ```
