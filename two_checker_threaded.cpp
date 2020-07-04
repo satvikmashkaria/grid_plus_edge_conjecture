@@ -4,6 +4,7 @@
 #include<tuple>
 #include<map>
 #include<string>
+#include<pthread.h>
 
 using namespace std;
 
@@ -40,11 +41,29 @@ bool two_cond(pair<int, int> x1, pair<int, int> y1, int n, int m){
 	return first || second || third || fourth;
 }
 
-int m, n;
+// int n, m;
 vector< pair<int, int> > points;
 vector< pair< pair<int, int>, pair<int, int> > > point_pairs;
 
-void two_checker(pair<int, int> x, pair<int, int> y){
+struct args {
+    pair<int, int> x;
+    pair<int, int> y; 
+    int n; 
+    int m; 
+    // vector< pair<int, int> > points;
+    // vector< pair< pair<int, int>, pair<int, int> > > point_pairs;
+};
+
+void *two_checker(void *a){
+    struct args *my_args;
+    my_args = (struct args *)a;
+
+    pair<int, int> x = my_args->x;
+    pair<int, int> y = my_args->y; 
+    int n = my_args->n; 
+    int m = my_args->m; 
+    // vector< pair<int, int> > points = my_args->points;
+    // vector< pair< pair<int, int>, pair<int, int> > > point_pairs = my_args->point_pairs;
     bool found = false;
     for(int j = 0; j < point_pairs.size(); j++){
         map< tuple <int, int>, int> distances;
@@ -67,22 +86,23 @@ void two_checker(pair<int, int> x, pair<int, int> y){
     bool cond = two_cond(x, y, n, m);
     if(!(cond ^ found)){
         if(found)
-            cout<<"MD is 2 when edge is between ("<<x.first<<","<<x.second<<") and ("<<y.first<<","<<y.second<<")\n";
+            cout<<1;
+            // cout<<"MD is 2 when edge is between "<<x.first<<" "<<x.second<<" and "<<y.first<<" "<<y.second<<endl;
     }
     else{
         cout<<"Mistake\n";
         exit(1);
     }
+    // pthread_exit(NULL);
+    return 0;
 }
 
-int main(int argc, char *argv[]){
-    if(argc < 3){
-        cout<<"Please provide dimensions of the grid.\n";
-        exit(-1);
-    }
-    n = stoi(argv[1]);
-    m = stoi(argv[2]);
-    
+
+int main(){
+    int m = 10, n = 10;
+
+    // vector< pair<int, int> > points;
+
     for (int i = 1; i <= n; i++){
         for (int j = 1; j <= m; j++){
             pair<int, int> p(i, j);
@@ -90,18 +110,53 @@ int main(int argc, char *argv[]){
         }
     }
 
+    // vector< pair< pair<int, int>, pair<int, int> > > point_pairs;
+
     for (int i = 0; i < points.size(); i++){
         for (int j = i+1; j < points.size(); j++){
             pair< pair<int, int>, pair<int, int> > p(points[i], points[j]);
             point_pairs.push_back(p);
         }
     }
+
+    // vector< tuple<pair<int, int>, pair<int, int>, pair<int, int> > > three_points;
+
+    // for (int i = 0; i < points.size(); i++){
+    //     for (int j = i+1; j < points.size(); j++){
+    //         for(int k = j+1; k < points.size(); k++){
+    //             tuple< pair<int, int>, pair<int, int>, pair<int, int> > tup;
+    //             tup = make_tuple(points[i], points[j], points[k]);
+    //             three_points.push_back(tup);
+    //         }
+    //     }
+    // }
             
+    cout<<"done\n";
+    vector<pthread_t> threads;
     for (int i = 0; i < point_pairs.size(); i++){
         pair<int, int> x = point_pairs[i].first, y = point_pairs[i].second;
         if(dist(x, y) > 1 && (x.first <= y.first) && (x.second >= y.second) && (x.second - y.second) >= (y.first - x.first)){
-            two_checker(x, y);
+            pthread_t thread;
+            struct args a;
+            a.m = m;
+            a.n = n;
+            a.x = x;
+            a.y = y;
+            // a.points = points;
+            // a.point_pairs = point_pairs;
+            two_checker((void *)&a);
+            // threads.push_back(thread);
+            // int rc = pthread_create(&thread, NULL, two_checker, (void *)&a);
+            // if (rc) {
+                // cout << "Error:unable to create thread," << rc << endl;
+                // exit(-1);
+            // }
         }
     }
-    cout<<"Success!\n";
+    void* status;
+    for(int i = 0; i < threads.size(); i++){
+        pthread_join(threads[i], &status);
+    }
+    // pthread_exit(NULL);
+    cout<<"Successful\n";
 }

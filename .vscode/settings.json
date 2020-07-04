@@ -1,8 +1,0 @@
-{
-    "files.associations": {
-        "utility": "cpp",
-        "vector": "cpp",
-        "chrono": "cpp",
-        "complex": "cpp"
-    }
-}

@@ -29,9 +29,13 @@ bool four_cond(pair<int, int> x1, pair<int, int> y1, int n, int m){
     return first && second && third;
 }
 
-int main(){
-    int m = 10, n = 10;
-
+int main(int argc, char* argv[]){
+    if(argc < 3){
+        cout<<"Please provide dimensions of the grid.\n";
+        exit(-1);
+    }
+    int n = stoi(argv[1]);
+    int m = stoi(argv[2]);
     vector< pair<int, int> > points;
 
     for (int i = 1; i <= n; i++){
@@ -62,7 +66,6 @@ int main(){
         }
     }
             
-    cout<<"done\n";
     for (int i = 0; i < point_pairs.size(); i++){
         pair<int, int> x = point_pairs[i].first, y = point_pairs[i].second;
         if(dist(x, y) > 1 && (x.first <= y.first) && (x.second >= y.second) && (x.second - y.second) >= (y.first - x.first)){
@@ -88,36 +91,13 @@ int main(){
             bool cond = four_cond(x, y, n, m);
             if(!(cond ^ found)){
                 if(found)
-                    cout<<"MD is 4 when edge is between "<<x.first<<" "<<x.second<<" and "<<y.first<<" "<<y.second<<endl;
+                    cout<<"MD is 4 when edge is between ("<<x.first<<","<<x.second<<") and ("<<y.first<<","<<y.second<<")\n";
             }
             else{
                 cout<<"Mistake\n";
-                exit(1);
+                exit(-1);
             }
         }
     }
+    cout<<"Success!\n";
 }
-
-
-// for (int k = 0; k < points.size(); k++){
-//     for (int l = k+1; l < points.size(); l++){
-//         for (int m = l+1; m < points.size(); m++){
-//             map< tuple <int, int, int>, int> distances;
-//             bool flag = true;
-//             for (int t = 0; t < points.size(); t++){
-//                 tuple<int, int, int> tup;
-//                 tup = make_tuple(distf(points[t], points[k], x, y), distf(points[t], points[l], x, y), distf(points[t], points[m], x, y));
-//                 if(distances.count(tup) > 0){
-//                     flag = false;
-//                     break;
-//                 }
-//                 else
-//                     distances[tup] = 1;
-//             }
-//             if(flag){
-//                 found = false;
-//                 break;
-//             }   
-//         }   
-//     }
-// }
