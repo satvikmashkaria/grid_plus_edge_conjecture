@@ -1,7 +1,7 @@
 __pycache__
 cppitertools
-test.cpp
-test.py
-test
+test_files
 a.out
 .vscode
+two_checker_threaded.cpp
+.DS_Store
