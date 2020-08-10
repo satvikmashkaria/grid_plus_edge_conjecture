@@ -1,6 +1,6 @@
 # Testing a conjecture for Metric Dimension of Grid + Edge
 
-TODO - put conjecture here
+![](conjecture.png)
 
 For a mxn grid augmented with one edge, to check that there is no resolving set of size 3 if and only if the MD=4 condition in our conjecture hold, run
 ```
