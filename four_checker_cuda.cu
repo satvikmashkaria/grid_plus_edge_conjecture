@@ -49,12 +49,13 @@ __global__ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1,
 
     int i = blockIdx.x * TPB + threadIdx.x;
     if(i >= npp) return;
-    const int NM = 20 * 20;
     int M = max(m, n) + 1;
     bool found = true;
     int x1 = ppx1[i], y1 = ppy1[i], x2 = ppx2[i], y2 = ppy2[i];
+    int* distances = new int[n*m];
     for (int j = 0; j < ntp; j++) {
-        int distances[NM] = {0};
+        for(int k = 0; k < n * m; k++)
+            distances[k] = 0;
         bool flag = true;
         for (int t = 0; t < n * m; t++) {
             int x_tmp = px[t], y_tmp = py[t];
