@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     }
 
     int num_pairs = ppx1.size();
-    bool conds[num_pairs];
+    bool conds[num_pairs], founds[num_pairs];
 
     for(int i = 0; i< num_pairs; i++){
         int x1 = ppx1[i], y1 = ppy1[i], x2 = ppx2[i], y2 = ppy2[i];
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < ppx1.size(); i++) {
         int x1 = ppx1[i], y1 = ppy1[i], x2 = ppx2[i], y2 = ppy2[i];
-        bool found = true;
+        founds[i] = true;
         for (int j = 0; j < tpx1.size(); j++) {
             set<tuple<int, int, int>> distances;
             bool flag = true;
@@ -104,14 +104,19 @@ int main(int argc, char* argv[]) {
                     distances.insert(tup);
             }
             if (flag) {
-                found = false;
+                founds[i] = false;
                 break;
             }
         }
-        if (!(conds[i] ^ found)) {
-            if (found)
+    }
+
+    for (int i = 0; i < ppx1.size(); i++) {
+        if (!(conds[i] ^ founds[i])) {
+            if (founds[i]){
+                int x1 = ppx1[i], y1 = ppy1[i], x2 = ppx2[i], y2 = ppy2[i];
                 cout << "MD is 4 when edge is between (" << x1 << "," << y1
                      << ") and (" << x2 << "," << y2 << ")\n";
+            }
         } else {
             cout << "Mistake\n";
             exit(-1);
