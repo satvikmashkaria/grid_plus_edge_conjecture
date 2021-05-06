@@ -5,3 +5,5 @@ a.out
 .vscode
 two_checker_threaded.cpp
 .DS_Store
+four_checker_cuda.cpp
+.gitignore
