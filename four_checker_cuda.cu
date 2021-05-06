@@ -7,32 +7,33 @@
 #include <utility>
 #include <vector>
 
-#define TPB 256
+#define TPB 128
 
 using namespace std;
 
-__host__ __device__ int dist(int x1, int y1, int x2, int y2) {
+__host__ __device__
+int dist(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) + abs(y1 - y2);
 }
 
-__device__ int distf(int x1, int y1, int x2, int y2, int x3, int y3, int x4,
-                     int y4) {
+__device__ 
+int distf(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
     return min(dist(x1, y1, x2, y2),
                min(dist(x1, y1, x3, y3) + dist(x4, y4, x2, y2) + 1,
                    dist(x1, y1, x4, y4) + dist(x3, y3, x2, y2) + 1));
 }
 
-__device__ bool corner_check(int x, int y, int n, int m) {
-    if (x == 1) {
-        if (y == 1 || y == m) return false;
-    } else if (x == n) {
-        if (y == m || y == 1) return false;
-    }
-    return true;
+__device__
+bool corner_check(int x, int y, int n, int m) {
+    if ((x == 1 || x == n) && (y == 1 || y == m)) 
+        return false;
+    else
+        return true;
 }
 
-__global__ void four_cond(int* x1, int* y1, int* x2, int* y2, int n, int m,
-                          int num_pairs, bool* out) {
+__global__
+void four_cond(int* x1, int* y1, int* x2, int* y2, int n,
+               int m, int num_pairs, bool* out) {
     int idx = blockIdx.x * TPB + threadIdx.x;
     if (idx >= num_pairs) return;
     int Gain1 = abs(abs(y1[idx] - y2[idx]) - abs(x1[idx] - x2[idx])) - 1;
@@ -45,9 +46,9 @@ __global__ void four_cond(int* x1, int* y1, int* x2, int* y2, int n, int m,
     return;
 }
 
-__global__ void make_three_points(int* px, int* py, int* tpx1, int* tpy1,
-                                  int* tpx2, int* tpy2, int* tpx3, int* tpy3,
-                                  int n, int m) {
+__global__
+void make_three_points(int* px, int* py, int* tpx1, int* tpy1, int* tpx2,
+                       int* tpy2, int* tpx3, int* tpy3, int n, int m) {
     int i = blockIdx.x * TPB + threadIdx.x;
     int ntp = (n * m * (n * m - 1) * (n * m - 2)) / 6;
     if (i >= ntp) return;
@@ -68,9 +69,10 @@ __global__ void make_three_points(int* px, int* py, int* tpx1, int* tpy1,
     return;
 }
 
-__global__ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1,
-                     int* tpy1, int* tpx2, int* tpy2, int* tpx3, int* tpy3,
-                     int* px, int* py, int n, int m, int npp, bool* out) {
+__global__
+void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1, int* tpy1,
+          int* tpx2, int* tpy2, int* tpx3, int* tpy3, int* px, int* py,
+          int n, int m, int npp, bool* out) {
     int i = blockIdx.x * TPB + threadIdx.x;
     if (i >= npp) return;
     int ntp = (n * m * (n * m - 1) * (n * m - 2)) / 6;
@@ -80,10 +82,12 @@ __global__ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1,
 
     int M = (n - 1) + (m - 1) + 1;
     int hash_size = 5 * M;
-    // bool* hash_table1 = new bool[hash_size];
-    // bool* hash_table2 = new bool[hash_size];
-    bool hash_table1[1000];
-    bool hash_table2[1000];
+    bool hash_table1[400];
+    bool hash_table2[400];
+    if (hash_size > 400){
+        bool* hash_table1 = new bool[hash_size];
+        bool* hash_table2 = new bool[hash_size];
+    }
     int* distances = new int[n * m];
     int a, b, c;
 
@@ -101,7 +105,7 @@ __global__ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1,
             c = distf(x_tmp, y_tmp, tpx3[j], tpy3[j], x1, y1, x2, y2);
             hash = a * M * M + b * M + c;
             hash_small1 = (5 * a) ^ (3 * b) ^ (1 * c);
-            hash_small2 = (1 * a) ^ (3 * b) ^ (7 * c);
+            hash_small2 = (3 * a) ^ (1 * b) ^ (5 * c);
             if (hash_table1[hash_small1] && hash_table2[hash_small2]) {
                 for (int k = 0; k < t; k++) {
                     if (distances[k] == hash) {
@@ -110,10 +114,9 @@ __global__ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1,
                     }
                 }
                 if (!flag) break;
-            } else {
-                hash_table1[hash_small1] = true;
-                hash_table2[hash_small2] = true;
             }
+            hash_table1[hash_small1] = true;
+            hash_table2[hash_small2] = true;
             distances[t] = hash;
         }
         if (flag) {
