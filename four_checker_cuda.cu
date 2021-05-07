@@ -1,39 +1,33 @@
-#include <math.h>
-
 #include <iostream>
-#include <set>
 #include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
 
-#define TPB 128
+#define TPB 256
 
 using namespace std;
 
-__host__ __device__
-int dist(int x1, int y1, int x2, int y2) {
+__host__ __device__ int dist(int x1, int y1, int x2, int y2) {
     return abs(x1 - x2) + abs(y1 - y2);
 }
 
-__device__ 
-int distf(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) {
+__device__ int distf(int x1, int y1, int x2, int y2, int x3, int y3, int x4,
+                     int y4) {
     return min(dist(x1, y1, x2, y2),
                min(dist(x1, y1, x3, y3) + dist(x4, y4, x2, y2) + 1,
                    dist(x1, y1, x4, y4) + dist(x3, y3, x2, y2) + 1));
 }
 
-__device__
-bool corner_check(int x, int y, int n, int m) {
-    if ((x == 1 || x == n) && (y == 1 || y == m)) 
+__device__ bool corner_check(int x, int y, int n, int m) {
+    if ((x == 1 || x == n) && (y == 1 || y == m))
         return false;
     else
         return true;
 }
 
-__global__
-void four_cond(int* x1, int* y1, int* x2, int* y2, int n,
-               int m, int num_pairs, bool* out) {
+__global__ void four_cond(int* x1, int* y1, int* x2, int* y2, int n, int m,
+                          int num_pairs, bool* out) {
     int idx = blockIdx.x * TPB + threadIdx.x;
     if (idx >= num_pairs) return;
     int Gain1 = abs(abs(y1[idx] - y2[idx]) - abs(x1[idx] - x2[idx])) - 1;
@@ -46,9 +40,9 @@ void four_cond(int* x1, int* y1, int* x2, int* y2, int n,
     return;
 }
 
-__global__
-void make_three_points(int* px, int* py, int* tpx1, int* tpy1, int* tpx2,
-                       int* tpy2, int* tpx3, int* tpy3, int n, int m) {
+__global__ void make_three_points(int* px, int* py, int* tpx1, int* tpy1,
+                                  int* tpx2, int* tpy2, int* tpx3, int* tpy3,
+                                  int n, int m) {
     int i = blockIdx.x * TPB + threadIdx.x;
     int ntp = (n * m * (n * m - 1) * (n * m - 2)) / 6;
     if (i >= ntp) return;
@@ -69,10 +63,9 @@ void make_three_points(int* px, int* py, int* tpx1, int* tpy1, int* tpx2,
     return;
 }
 
-__global__
-void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1, int* tpy1,
-          int* tpx2, int* tpy2, int* tpx3, int* tpy3, int* px, int* py,
-          int n, int m, int npp, bool* out) {
+__global__ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1,
+                     int* tpy1, int* tpx2, int* tpy2, int* tpx3, int* tpy3,
+                     int* px, int* py, int n, int m, int npp, bool* out) {
     int i = blockIdx.x * TPB + threadIdx.x;
     if (i >= npp) return;
     int ntp = (n * m * (n * m - 1) * (n * m - 2)) / 6;
@@ -80,15 +73,16 @@ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1, int* tpy1,
     int x_tmp, y_tmp, hash, hash_small1, hash_small2;
     bool found = true;
 
-    int M = (n - 1) + (m - 1) + 1;
-    int hash_size = 5 * M;
-    bool hash_table1[400];
-    bool hash_table2[400];
-    if (hash_size > 400){
-        bool* hash_table1 = new bool[hash_size];
-        bool* hash_table2 = new bool[hash_size];
+    int M = n + m - 1;
+    int M2 = M * M;
+    int hash_size = 1;
+    while (hash_size <= 5 * M) {
+        hash_size <<= 1;
     }
-    int* distances = new int[n * m];
+
+    bool hash_table1[256];
+    bool hash_table2[256];
+    int distances[400];
     int a, b, c;
 
     for (int j = 0; j < ntp; j++) {
@@ -103,7 +97,7 @@ void find(int* ppx1, int* ppy1, int* ppx2, int* ppy2, int* tpx1, int* tpy1,
             a = distf(x_tmp, y_tmp, tpx1[j], tpy1[j], x1, y1, x2, y2);
             b = distf(x_tmp, y_tmp, tpx2[j], tpy2[j], x1, y1, x2, y2);
             c = distf(x_tmp, y_tmp, tpx3[j], tpy3[j], x1, y1, x2, y2);
-            hash = a * M * M + b * M + c;
+            hash = a * M2 + b * M + c;
             hash_small1 = (5 * a) ^ (3 * b) ^ (1 * c);
             hash_small2 = (3 * a) ^ (1 * b) ^ (5 * c);
             if (hash_table1[hash_small1] && hash_table2[hash_small2]) {
@@ -165,7 +159,8 @@ int main(int argc, char* argv[]) {
     int *ppx1_dev, *ppx2_dev, *ppy1_dev, *ppy2_dev;
     int cond_size = num_pairs * sizeof(bool);
     int pp_size = num_pairs * sizeof(int);
-    int num_blocks = ceil((float)num_pairs / TPB);
+    int num_blocks = num_pairs / TPB;
+    num_blocks += (num_pairs % TPB > 0);
 
     cudaMalloc((void**)&cond_dev, cond_size);
     cudaMalloc((void**)&ppx1_dev, pp_size);
