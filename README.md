@@ -8,7 +8,7 @@ This repository contains the code for final project of ME 766 course @ IIT Bomba
 - Satvik Mashkaria
 - Sakhsam Khandelwal
 
-![](conjecture.png)
+![](imgs/conjecture.png)
 
 For a mxn grid augmented with one edge, to check that there is no resolving set of size 3 if and only if the MD=4 condition in our conjecture hold, run any of the following.
 ```bash
