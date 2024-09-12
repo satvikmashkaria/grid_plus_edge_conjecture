@@ -4,7 +4,7 @@
 #include<tuple>
 #include<map>
 #include<string>
-
+#include<bits/stdc++.h>
 using namespace std;
 
 int dist(pair<int, int> x, pair<int, int> y){
@@ -36,55 +36,57 @@ int main(int argc, char* argv[]){
     }
     int n = stoi(argv[1]);
     int m = stoi(argv[2]);
-    vector< pair<int, int> > points, border_points;
+    vector< pair<int, int> > points;
 
     for (int i = 1; i <= n; i++){
         for (int j = 1; j <= m; j++){
             pair<int, int> p(i, j);
             points.push_back(p);
-            if(i == 1 || j == 1 || i == n || j == m)
-                border_points.push_back(p);
         }
     }
-    cout<<border_points.size()<<endl;
 
     vector< pair< pair<int, int>, pair<int, int> > > point_pairs;
 
     for (int i = 0; i < points.size(); i++){
         for (int j = i+1; j < points.size(); j++){
-            pair< pair<int, int>, pair<int, int> > p(points[i], points[j]);
-            point_pairs.push_back(p);
+        	pair<int, int> x = points[i], y = points[j];
+        	if(dist(x, y) > 1 && (x.first <= y.first) && (x.second >= y.second) && (x.second - y.second) >= (y.first - x.first))
+        	{
+	            pair< pair<int, int>, pair<int, int> > p(points[i], points[j]);
+	            point_pairs.push_back(p);
+	        }
         }
     }
 
-    vector< tuple<pair<int, int>, pair<int, int>, pair<int, int> > > three_border_points;
+    vector< tuple<pair<int, int>, pair<int, int>, pair<int, int> > > three_points;
 
-    for (int i = 0; i < border_points.size(); i++){
-        for (int j = i+1; j < border_points.size(); j++){
-            for(int k = j+1; k < border_points.size(); k++){
+    for (int i = 0; i < points.size(); i++){
+        for (int j = i+1; j < points.size(); j++){
+            for(int k = j+1; k < points.size(); k++){
                 tuple< pair<int, int>, pair<int, int>, pair<int, int> > tup;
-                tup = make_tuple(border_points[i], border_points[j], border_points[k]);
-                three_border_points.push_back(tup);
+                tup = make_tuple(points[i], points[j], points[k]);
+                three_points.push_back(tup);
             }
         }
     }
-            
+    
+    #pragma omp parallel for    
     for (int i = 0; i < point_pairs.size(); i++){
         pair<int, int> x = point_pairs[i].first, y = point_pairs[i].second;
-        if(dist(x, y) > 1 && (x.first <= y.first) && (x.second >= y.second) && (x.second - y.second) >= (y.first - x.first)){
+        
             bool found = true;
-            for(int j = 0; j < three_border_points.size(); j++){
-                map< tuple <int, int, int>, int> distances;
+            for(int j = 0; j < three_points.size(); j++){
+                set< tuple <int, int, int> > distances;
                 bool flag = true;
                 for (int t = 0; t < points.size(); t++){
                     tuple<int, int, int> tup;
-                    tup = make_tuple(distf(points[t], get<0>(three_border_points[j]), x, y), distf(points[t], get<1>(three_border_points[j]), x, y), distf(points[t], get<2>(three_border_points[j]), x, y));
-                    if(distances.count(tup) > 0){
+                    tup = make_tuple(distf(points[t], get<0>(three_points[j]), x, y), distf(points[t], get<1>(three_points[j]), x, y), distf(points[t], get<2>(three_points[j]), x, y));
+                    if(distances.find(tup)!= distances.end()){
                         flag = false;
                         break;
                     }
                     else
-                        distances[tup] = 1;
+                        distances.insert(tup);
                 }
                 if(flag){
                     found = false;
@@ -100,7 +102,7 @@ int main(int argc, char* argv[]){
                 cout<<"Mistake\n";
                 exit(-1);
             }
-        }
+        
     }
     cout<<"Success!\n";
 }

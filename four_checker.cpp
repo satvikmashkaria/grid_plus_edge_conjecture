@@ -4,7 +4,7 @@
 #include<tuple>
 #include<map>
 #include<string>
-
+#include<bits/stdc++.h>
 using namespace std;
 
 int dist(pair<int, int> x, pair<int, int> y){
@@ -49,8 +49,12 @@ int main(int argc, char* argv[]){
 
     for (int i = 0; i < points.size(); i++){
         for (int j = i+1; j < points.size(); j++){
-            pair< pair<int, int>, pair<int, int> > p(points[i], points[j]);
-            point_pairs.push_back(p);
+        	pair<int, int> x = points[i], y = points[j];
+        	if(dist(x, y) > 1 && (x.first <= y.first) && (x.second >= y.second) && (x.second - y.second) >= (y.first - x.first))
+        	{
+	            pair< pair<int, int>, pair<int, int> > p(points[i], points[j]);
+	            point_pairs.push_back(p);
+	        }
         }
     }
 
@@ -65,23 +69,24 @@ int main(int argc, char* argv[]){
             }
         }
     }
-            
+    
+    #pragma omp parallel for    
     for (int i = 0; i < point_pairs.size(); i++){
         pair<int, int> x = point_pairs[i].first, y = point_pairs[i].second;
-        if(dist(x, y) > 1 && (x.first <= y.first) && (x.second >= y.second) && (x.second - y.second) >= (y.first - x.first)){
+        
             bool found = true;
             for(int j = 0; j < three_points.size(); j++){
-                map< tuple <int, int, int>, int> distances;
+                set< tuple <int, int, int> > distances;
                 bool flag = true;
                 for (int t = 0; t < points.size(); t++){
                     tuple<int, int, int> tup;
                     tup = make_tuple(distf(points[t], get<0>(three_points[j]), x, y), distf(points[t], get<1>(three_points[j]), x, y), distf(points[t], get<2>(three_points[j]), x, y));
-                    if(distances.count(tup) > 0){
+                    if(distances.find(tup)!= distances.end()){
                         flag = false;
                         break;
                     }
                     else
-                        distances[tup] = 1;
+                        distances.insert(tup);
                 }
                 if(flag){
                     found = false;
@@ -97,7 +102,7 @@ int main(int argc, char* argv[]){
                 cout<<"Mistake\n";
                 exit(-1);
             }
-        }
+        
     }
     cout<<"Success!\n";
 }
